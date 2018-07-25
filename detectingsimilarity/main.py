@@ -1,3 +1,4 @@
+#import pdb; pdb.set_trace()
 import requests
 import json
 import rdflib
@@ -168,10 +169,10 @@ def get_similarity(silabosData):
     #print "headers:"+ str(response.headers)
     #print "content:"+ str(response.text)
     response_similarity = ""
-    #if (response.status_code == 200):
-    response_similarity =  str(response.text)
-    response = ""
-    print response_similarity
+    if (response.status_code == 200):
+        response_similarity =  str(response.text)
+        response = ""
+        #print response_similarity
     return response_similarity
 
 
@@ -197,10 +198,10 @@ def save_similarity(silaboA, silaboB, similitud):
     g.add( (similarityResourceURI, similarityValueURI, similarityValue) )
   
 
-    print g.serialize(format='nt')
+    #print g.serialize(format='nt')
 #    g.serialize(destination='similarities.txt', format='nt'))
 
-    f=open("similarc.txt","a")
+    f=open("similardd.txt","a")
     f.write(str(g.serialize(format='nt')) + "\n") 
     f.close()
 
@@ -217,10 +218,16 @@ def get_data():
                 if (silabosA[0] != silabosB[0]):#que el silabo (URI) B no sea el mismo que el silabo (URI) A
                     json_to_send.append(get_content("1", silabosB, conn))       #Aqui ya se tiene los dos silabos en JSON
                     print str(silabosA[1].encode('utf-8').strip() + " -- vs -- " + silabosB[1].encode('utf-8').strip())
-                    similarity = json.loads(get_similarity(json_to_send))['value']               
-                    save_similarity(silabosA[0][1: -1].encode('utf-8').strip(), silabosB[0][1: -1].encode('utf-8').strip(), similarity)  
-                    time.sleep(10)
-              
+                    try:
+                        similarity = json.loads(get_similarity(json_to_send))['value']
+                        save_similarity(silabosA[0][1: -1].encode('utf-8').strip(), silabosB[0][1: -1].encode('utf-8').strip(), similarity)  
+                    except ValueError:
+                        print "Error  en construccion del JSON"
+                        #detectado error cuando un capitulo no tiene subchapters. Se debe controlar eso, detectando la similitud con los titulos de los capitulos.            
+ 	            json_to_send = [] 
+                    json_to_send.append(get_content("0", silabosA, conn))
+                    
+               
         #print json_to_send 
 
 get_data()
