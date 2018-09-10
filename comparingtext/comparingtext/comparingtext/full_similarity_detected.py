@@ -7,12 +7,12 @@ import comparingtext.comparingtext.nltk_similarity
 from comparingtext.comparingtext.nltk_similarity import *
 
 #--------------------------------- Definición de Variables Globales --------------------------------
-conn = psycopg2.connect(database='silabos',user='ucuenca',password='ucuenca2017', host='172.17.0.2')
-cur = conn.cursor()
+#conn = psycopg2.connect(database='silabos',user='ucuenca',password='ucuenca2017', host='172.17.0.2')
+#cur = conn.cursor()
 #id_asignatura1 = str(sys.argv[1])
 #id_asignatura2 = str(sys.argv[2])
-id_asignatura1 = "123"
-id_asignatura2 = "124"
+#id_asignatura1 = "123"
+#id_asignatura2 = "124"
 
 nameA = ''
 nameB = ''
@@ -50,27 +50,6 @@ def set_chaptersB(chapters):
     capitulos_asignatura2 = capitulos_from_json(chapters)
 
 
-
-def nombre(id_asignatura):
-    cur.execute("SELECT DISTINCT nombre_asignatura FROM silabo WHERE id_silabo='"+id_asignatura+"'")
-    rows = cur.fetchall()
-    desc = rows[0][0]
-    return desc
-
-def descripcion(id_asignatura):
-    desc = ""
-    cur.execute("SELECT DISTINCT descripcion_silabo FROM silabo WHERE id_silabo='"+id_asignatura+"'")
-    rows = cur.fetchall()
-    desc = rows[0][0]
-    return desc
-
-def capitulos(id_asignatura):
-    capitulos = {}
-    cur.execute("SELECT DISTINCT capitulos FROM contenido WHERE id_silabo='"+id_asignatura+"'")
-    for row in cur:
-        capitulos[row[0]] = []
-    return capitulos
-
 def capitulos_from_json(chapters):
     capitulos = {}
     caps = chapters 
@@ -81,13 +60,6 @@ def capitulos_from_json(chapters):
         capitulos[row['title']] = subchapters
     return capitulos
     
-
-def subcapitulos(id_asignatura, capitulo):
-    subcapitulos = []
-    cur.execute("SELECT DISTINCT subcapitulos FROM contenido WHERE id_silabo='"+id_asignatura+"' and capitulos='"+capitulo+"'")
-    for row in cur:
-        subcapitulos.append(row[0])
-    return subcapitulos
 
 def preprocesamiento(texto):
     texto_normalize = normalization(texto)
@@ -195,7 +167,7 @@ def subchapters_similarity(chaptersA, chaptersB):
     
 
 def full_similarity(descA, descB, chaptersA, chaptersB ):
-    porcentaje_similitud_total = description_similarity(descA, descB)*float(1/3) + (chapters_similarity(chaptersA, chaptersB) + subchapters_similarity(chaptersA, chaptersB))*float(2/3)
+    porcentaje_similitud_total = description_similarity(descA, descB)*float(1/3) + (chapters_similarity(chaptersA, chaptersB) + subchapters_similarity(chaptersA, chaptersB)/2)*float(2/3)
     return round(porcentaje_similitud_total,2)
 
 

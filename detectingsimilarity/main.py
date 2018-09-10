@@ -201,7 +201,7 @@ def save_similarity(silaboA, silaboB, similitud):
     #print g.serialize(format='nt')
 #    g.serialize(destination='similarities.txt', format='nt'))
 
-    f=open("similardd.txt","a")
+    f=open("similarLast.txt","a")
     f.write(str(g.serialize(format='nt')) + "\n") 
     f.close()
 

@@ -2,11 +2,12 @@
 import json
 from flask import jsonify
 from comparingtext.comparingtext.full_similarity_detected import get_results, get_data_test
-from comparingtext.comparingtext.calculo_similitud_asignatura import get_value
+#from comparingtext.comparingtext.calculo_similitud_asignatura import get_value
 
 
 def get_direct_results():
-    return jsonify({'similarity': get_value()})
+    return jsonify({'similarity': "No hay resultado, bloqueado el código en get_direct_results() en inter.py"})
+    #return jsonify({'similarity': get_value()})
 
 
 def get_test(jsondata):

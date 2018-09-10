@@ -36,6 +36,8 @@ RUN pip install -U nltk
 
 RUN pip install Flask
 
+RUN pip install -U flask-cors
+
 RUN export PATH=/usr/lib/postgresql/X.Y/bin/:$PATH
 
 RUN apk add postgresql-dev
