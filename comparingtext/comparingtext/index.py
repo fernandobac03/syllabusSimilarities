@@ -3,17 +3,17 @@
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from comparingtext.comparingtext.inter import get_full_similarity, get_test, get_direct_results
+from comparingtext.comparingtext.inter import get_full_similarity, get_direct_results
 
 app = Flask(__name__)
 CORS(app)
 
-@app.route('/ucuenca/syllabus/full_similarity_detected/service', methods=['POST'])
+@app.route('/ucuenca/syllabus/similarities/service/full', methods=['POST'])
 def get_similarity():
     varjson = request.get_json(force=True)
     
-    return get_test(varjson)
-    #return get_full_similarity(varjson)
+    return get_full_similarity(varjson)
+
 
 
 
@@ -22,7 +22,13 @@ def get_data():
     
     #return get_direct_results()
     return jsonify({'test': 'ok'})
+
    
+@app.route('/ucuenca/syllabus/similarities/service/jsonexample', methods=['GET'])
+def get_example2():
+    
+    return jsonExample();
+
 
 @app.route('/ucuenca/syllabus/full_similarity_detected/jsonexample', methods=['GET'])
 def get_example():

@@ -6,49 +6,8 @@ import psycopg2, sys
 import comparingtext.comparingtext.nltk_similarity
 from comparingtext.comparingtext.nltk_similarity import *
 
-#--------------------------------- Definición de Variables Globales --------------------------------
-#conn = psycopg2.connect(database='silabos',user='ucuenca',password='ucuenca2017', host='172.17.0.2')
-#cur = conn.cursor()
-#id_asignatura1 = str(sys.argv[1])
-#id_asignatura2 = str(sys.argv[2])
-#id_asignatura1 = "123"
-#id_asignatura2 = "124"
-
-nameA = ''
-nameB = ''
-descriptionA = ''
-descriptionB = ''
-capitulos_asignatura1 = {}
-capitulos_asignatura2 = {}
 
 #------------------------------------- Definición de Funciones -------------------------------------
-
-def set_values(titleA, titleB, descA, descB, chaptersA, chaptersB):
-    set_nameA(titleA)
-    set_nameB(titleB)
-    set_descriptionA(descA)
-    set_descriptionB(descB)
-    set_chaptersA(chaptersA)
-    set_chaptersA(chaptersB)
-
-def set_nameA(title):
-    nameA = title
-
-def set_nameB(title):
-    nameB = title
-
-def set_descriptionA(desc):
-    descriptionA = desc
-
-def set_descriptionB(desc):
-    descriptionB = desc
-
-def set_chaptersA(chapters):
-    capitulos_asignatura1 = capitulos_from_json(chapters)
-
-def set_chaptersB(chapters):
-    capitulos_asignatura2 = capitulos_from_json(chapters)
-
 
 def capitulos_from_json(chapters):
     capitulos = {}
@@ -104,53 +63,50 @@ def calculo_similitud_subcapitulos(asignatura1, asignatura2):
         porcentaje_similitud += similitud_subcapitulos[subcap_asignatura1]
     return porcentaje_similitud/longitud
 
-#------------------------------------ Extracción de los Textos ------------------------------------
-#nombre_asignatura1 = nombre(id_asignatura1)
-#nombre_asignatura2 = nombre(id_asignatura2)
-
-nombre_asignatura1 = nameA
-nombre_asignatura2 = nameB
-
-
-#descripcion_asignatura1 = descriptionA
-#descripcion_asignatura2 = descriptionB
-
-#capitulos_asignatura1 = capitulos(id_asignatura1)
-#capitulos_asignatura2 = capitulos(id_asignatura2)
-
-#--------------------------------- Preprocesamiento de los Textos ---------------------------------
-#texto1_stemming = preprocesamiento(descripcion_asignatura1)
-#texto2_stemming = preprocesamiento(descripcion_asignatura2)
 
 #---------------------------------- Ejecución de los Algoritmos -----------------------------------
 
 
+def text_similarity(textoA, textoB):
+    texto1_stemming = preprocesamiento(textoA)
+    texto2_stemming = preprocesamiento(textoB)
+    porcentaje_similitud_de_textos = dices_similarity(texto1_stemming, texto2_stemming)
+    return round(porcentaje_similitud_de_textos*100,2)
 
-#print("\nLa descripción de la Asignatura '"+nombre_asignatura1+"' es: "+descripcion_asignatura1+"\n")
-#print("La descripción de la Asignatura '"+nombre_asignatura2+"' es: "+descripcion_asignatura2+"\n")
-#print("La similitud de las asignaturas se presenta a continuación:")
+
+def title_similarity(titleA, titleB):
+
+    return text_similarity(titleA, titleB)
+
 
 def description_similarity(descA, descB):
 
-    texto1_stemming = preprocesamiento(descA)
-    texto2_stemming = preprocesamiento(descB)
+    return text_similarity(descA, descB)
 
 
-    porcentaje_similitud_descripciones = dices_similarity(texto1_stemming, texto2_stemming)
-    return round(porcentaje_similitud_descripciones*100,2)
+def objectives_similarity(objA, objB):
+
+    return text_similarity(objA, objB)
+
+
+def results_similarity(resultA, resultB):
+
+    return text_similarity(resultA, resultB)
+
+
+def academic_unit_similarity(unitA, unitB):
+
+    return text_similarity(unitA, unitB)
+
 
 
 def chapters_similarity(chaptersA, chaptersB):
-
-    #for key in capitulos_asignatura1:
-    #    capitulos_asignatura1[key] = subcapitulos(id_asignatura1, key)
-    #for key in capitulos_asignatura2:
-    #    capitulos_asignatura2[key] = subcapitulos(id_asignatura2, key)
 
     [porcentaje_similitud_capitulos, similitud_capitulos] = calculo_similitud_capitulos(chaptersA.keys(), chaptersB.keys())
     return round(porcentaje_similitud_capitulos*100,2)
 
 def subchapters_similarity(chaptersA, chaptersB):
+
     [porcentaje_similitud_capitulos, similitud_capitulos] = calculo_similitud_capitulos(chaptersA.keys(), chaptersB.keys())
     similitud = 0
     contador = 0
@@ -167,13 +123,48 @@ def subchapters_similarity(chaptersA, chaptersB):
     
 
 def full_similarity(descA, descB, chaptersA, chaptersB ):
-    porcentaje_similitud_total = description_similarity(descA, descB)*float(1/3) + (chapters_similarity(chaptersA, chaptersB) + subchapters_similarity(chaptersA, chaptersB)/2)*float(2/3)
+    porcentaje_similitud_total = description_similarity(descA, descB)*float(1/3) + ((chapters_similarity(chaptersA, chaptersB) + subchapters_similarity(chaptersA, chaptersB))/2)*float(2/3)
     return round(porcentaje_similitud_total,2)
 
 
-def get_results():
-    return ""
-def get_data_test(titleA, titleB, descA, descB, chaptersA, chaptersB):
-    return full_similarity(descA, descB, capitulos_from_json(chaptersA), capitulos_from_json(chaptersB))
-    #return {'data': titleA + ' --- ' + titleB + '--- ' + id_asignatura1 + '---' , 'chapters':  capitulos_asignatura1 }
+def get_similarity_from_list(listaA, listaB): #para comparar objectives, results y otros que contengan items, exepto capitulo. 
+    # se compara todos los items de A vs todos de B (un silabo puede tener 2 objetivos, mientras que el otro puede tener muchos mas.) y se promedia
+    suma_similitud = 0;
+    similitud_total = 0;
+    comparaciones=0;
+    for itemA in ListaA:
+        for itemB in ListaB:
+            for tag in itemA:
+                if (not tag="id") and (type(itemA[tag])=="str") and (type(itemB[tag])=="str")#si los dos son strings
+                    comparaciones = comparaciones + 1
+                    suma_similitud = suma_similitud + text_similarity(itemA[tagA]), silaboB[itemA])
+                else if  type(itemA[tag])=="list" and type(itemB[tag])=="list":
+                    suma_similitud = suma_similitud + get_similarity_from_list(itemA[tagA], silaboB[itemA]) #recursivo, en caso de contenido es una lista, que contiene capitulos, capitulos contiene otra lista , subcapitulos, entonces se debe entrar a analizar subcapitulos.
+    return (suma_similitud/comparaciones) 
+    
 
+def get_global_similarity(silaboA, silaboB, pesos):
+    similarity_value = 0;
+    similarities_by_tag = "{";
+    for tag in silaboA:##obtengo los nombres de los campos del json, ejemplo: title, description, objectives, etc.
+        if (not tag=="id") and type(silaboA[tag])=="str" and type(silaboB[tag])=="str":#si tag no tine items (content, objectives, etc tienen items)
+            if pesos[tag]: #existe valor de peso para ese tag, se suma la similitud
+                similitud_de_este_tag = text_similarity(silaboA[tag], silaboB[tag])
+                similarity_value = similarity_value + (similitud_de_este_tag*(pesos[tag]/100))
+                similarities_by_tag = similarities_by_tag + tag + ":" + similitud_de_este_tag + ","
+        else if type(silaboA[tag])=="list" and type(silaboB[tag])=="list":
+            similitud_de_este_tag = get_similarity_from_list(silaboA[tag], silaboB[tag]) 
+            similarity_value = similarity_value + (similitud_de_este_tag*(pesos[tag]/100))
+            similarities_by_tag = similarities_by_tag + tag + ":" + similitud_de_este_tag + ","
+     similarities_by_tag = similarities_by_tag + "'total':"+similarity_value+"}"
+
+        
+
+
+def detecting_similarity(silaboA, silaboB, pesos):
+    #return full_similarity(titleA, titleB, descA, descB, capitulos_from_json(chaptersA), capitulos_from_json(chaptersB))
+    return get_global_similarity(silaboA, silaboB, pesos)
+
+#def detecting_similarity(titleA, titleB, descA, descB, chaptersA, chaptersB):
+#    return full_similarity(titleA, titleB, descA, descB, capitulos_from_json(chaptersA), capitulos_from_json(chaptersB))
+ 
