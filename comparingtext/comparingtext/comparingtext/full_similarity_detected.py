@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 #-------------------------------------- Importa las librerías --------------------------------------
-import psycopg2, sys
+import sys
+import json
 import comparingtext.comparingtext.nltk_similarity
 from comparingtext.comparingtext.nltk_similarity import *
 
@@ -132,33 +133,40 @@ def get_similarity_from_list(listaA, listaB): #para comparar objectives, results
     suma_similitud = 0;
     similitud_total = 0;
     comparaciones=0;
-    for itemA in ListaA:
-        for itemB in ListaB:
+    for itemA in listaA:
+        for itemB in listaB:
             for tag in itemA:
-                if (not tag="id") and (type(itemA[tag])=="str") and (type(itemB[tag])=="str")#si los dos son strings
+                if (not tag=="id") and type(itemA[tag]).__name__ =="str" and type(itemB[tag]).__name__ =="str": #si los dos son strings
                     comparaciones = comparaciones + 1
-                    suma_similitud = suma_similitud + text_similarity(itemA[tagA]), silaboB[itemA])
-                else if  type(itemA[tag])=="list" and type(itemB[tag])=="list":
-                    suma_similitud = suma_similitud + get_similarity_from_list(itemA[tagA], silaboB[itemA]) #recursivo, en caso de contenido es una lista, que contiene capitulos, capitulos contiene otra lista , subcapitulos, entonces se debe entrar a analizar subcapitulos.
+                    suma_similitud = suma_similitud + text_similarity(itemA[tag], itemB[tag])
+                elif type(itemA[tag]).__name__ =="list" and type(itemB[tag]).__name__ =="list":
+                    suma_similitud = suma_similitud + get_similarity_from_list(itemA[tag], itemB[tag]) #recursivo, en caso de contenido es una lista, que contiene capitulos, capitulos contiene otra lista , subcapitulos, entonces se debe entrar a analizar subcapitulos.
     return (suma_similitud/comparaciones) 
     
 
 def get_global_similarity(silaboA, silaboB, pesos):
-    similarity_value = 0;
-    similarities_by_tag = "{";
+    similarity_value = 0
+    similarities_result = '{'
+    similarities_result_JSON = {}
     for tag in silaboA:##obtengo los nombres de los campos del json, ejemplo: title, description, objectives, etc.
-        if (not tag=="id") and type(silaboA[tag])=="str" and type(silaboB[tag])=="str":#si tag no tine items (content, objectives, etc tienen items)
-            if pesos[tag]: #existe valor de peso para ese tag, se suma la similitud
-                similitud_de_este_tag = text_similarity(silaboA[tag], silaboB[tag])
-                similarity_value = similarity_value + (similitud_de_este_tag*(pesos[tag]/100))
-                similarities_by_tag = similarities_by_tag + tag + ":" + similitud_de_este_tag + ","
-        else if type(silaboA[tag])=="list" and type(silaboB[tag])=="list":
-            similitud_de_este_tag = get_similarity_from_list(silaboA[tag], silaboB[tag]) 
-            similarity_value = similarity_value + (similitud_de_este_tag*(pesos[tag]/100))
-            similarities_by_tag = similarities_by_tag + tag + ":" + similitud_de_este_tag + ","
-     similarities_by_tag = similarities_by_tag + "'total':"+similarity_value+"}"
+        if tag in silaboB:#
+            similitud_de_este_tag = 0
+            if (not tag=="id") and (type(silaboA[tag]).__name__ =="str") and (type(silaboB[tag]).__name__ =="str"): #si tag no tine items (content, objectives, etc tienen items)
+                if pesos[tag]: #existe valor de peso para ese tag, se suma la similitud
+                    similitud_de_este_tag = text_similarity(silaboA[tag], silaboB[tag])
+                    similarity_value = similarity_value + (similitud_de_este_tag*(int(pesos[tag])/100))
+                    similarities_result = similarities_result + '"'+tag+'"' + ':' + str(similitud_de_este_tag) + ','
+                    similarities_result_JSON[tag] = str(similitud_de_este_tag)
+            elif type(silaboA[tag]).__name__ =="list" and type(silaboB[tag]).__name__ =="list":
+                similitud_de_este_tag = get_similarity_from_list(silaboA[tag], silaboB[tag]) 
+                similarity_value = similarity_value + (similitud_de_este_tag*(int(pesos[tag])/100))
+                similarities_result = similarities_result + '"'+tag+'"' + ':' + str(similitud_de_este_tag) + ','
+                similarities_result_JSON[tag] = str(similitud_de_este_tag)
 
-        
+    similarities_result = similarities_result + '"total":'+str(similarity_value)+'}'
+    similarities_result_JSON["total"] = str(similarity_value)
+    return similarities_result_JSON # return a JSON with similarities by tag
+    #return silaboA    
 
 
 def detecting_similarity(silaboA, silaboB, pesos):

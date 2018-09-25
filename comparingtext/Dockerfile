@@ -38,11 +38,11 @@ RUN pip install Flask
 
 RUN pip install -U flask-cors
 
-RUN export PATH=/usr/lib/postgresql/X.Y/bin/:$PATH
+#RUN export PATH=/usr/lib/postgresql/X.Y/bin/:$PATH
 
-RUN apk add postgresql-dev
+#RUN apk add postgresql-dev
 
-RUN pip install psycopg2
+#RUN pip install psycopg2
 
 
 

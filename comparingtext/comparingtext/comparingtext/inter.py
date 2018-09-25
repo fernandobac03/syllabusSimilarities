@@ -11,10 +11,11 @@ def get_direct_results():
 
 def get_full_similarity(jsondata):
  #   return jsonify({'key': 'similarity', 'value': detecting_similarity(get_title(jsondata, 0), get_description(jsondata, 0), get_academic_unit(jsondata, 0), get_results(jsondata, 0), get_objectives(jsondata, 0), get_title(jsondata, 1),  get_description(jsondata, 1), get_chapters(jsondata, 0), get_chapters(jsondata, 1))})
-
-    if jsondata[2]: #viene json de pesos, 
-        #verificar que cumpla 100%
-        return null
+    
+    if len(jsondata)>2:
+        if jsondata[2]: #viene json de pesos, 
+            #verificar que cumpla 100%
+            return null
     else:
         
         return jsonify({'key': 'similarity', 'value': detecting_similarity(jsondata[0], jsondata[1], get_default_weight())})
@@ -37,7 +38,7 @@ def get_description(jsondata, silabo_id):
 
 #recuperando Unidad Academica como lista
 def get_academic_unit(jsondata, silabo_id):
-   unidad_academica = str(jsondata[silabo_id]['unit'])
+    unidad_academica = str(jsondata[silabo_id]['unit'])
     return unidad_academica 
   
 
