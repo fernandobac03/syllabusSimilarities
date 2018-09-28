@@ -128,6 +128,13 @@ def get_objectives_query():
                 + "             ?objective_item aiiso:name ?objective_name .     "
                 + " }} ")
 
+def get_count_syllabus():
+    return str(" SELECT DISTINCT  (count(distinct ?s) as ?total)"
+                + " { " 
+                + "               ?s a <http://purl.org/vocab/aiiso/schema#KnowledgeGrouping> "
+                + "  } ")
+
+
 def get_content(idsilabo, silaboData, conn):
     
     contenido = {}
@@ -150,19 +157,20 @@ def get_content(idsilabo, silaboData, conn):
             #print eachchapter[0]#URI capitulo
             query_get_subchapter = str(get_subchapters_query()).format(eachchapter[0])
             subchapter_result = executeSparql(query_get_subchapter, conn)#subcapitulos recuperados por cada capitulo
-       	    subChapters = [] 
-            idsubChapter = 1 
+       	    if (len(subchapter_result['values']) > 0):
+                subChapters = [] 
+                idsubChapter = 1 
 
-            for eachsubchapter in subchapter_result['values']:
-                subchapter={}
-                subchapter['id'] = idsubChapter
-                subchapter['title'] = eachsubchapter[0]
-                subChapters.append(subchapter) 
-                idsubChapter = idsubChapter + 1
+                for eachsubchapter in subchapter_result['values']:
+                    subchapter={}
+                    subchapter['id'] = idsubChapter
+                    subchapter['title'] = eachsubchapter[0]
+                    subChapters.append(subchapter) 
+                    idsubChapter = idsubChapter + 1
         
-            chapter['subchapter'] = subChapters
-            Chapters.append(chapter)
-            idChapter=idChapter+1
+                chapter['subchapter'] = subChapters
+                Chapters.append(chapter)
+                idChapter=idChapter+1
 
         contenido['content']= Chapters
 
@@ -255,45 +263,65 @@ def save_similarity(offset, limit, silaboA, silaboB, similitud):
     f.close()
 
 
+def save_error(msg):
+
+    hora= time.strftime("%H:%M:%S") 
+    fecha = time.strftime("%d/%m/%y")
+    fecha= fecha.replace("/", "-")
+    f=open("error_"+fecha+".logs","a")
+    f.write(str(fecha+"-"+hora+"-"+msg) + "\n") 
+    f.close()
+
 
 def get_data():
 
 
     offset = 0
-    limit = 3
+    limit = 1000
+    numero_total_de_silabos = 0
+    silabos_procesados = 1
+    with ag_connect(allegroREPOSITORY, host=allegroHOST, create=False, clear=False, port=allegroPORT, user=allegroUSER, password=allegroPASSWORD) as conn:
+        get_numero_de_silabos_query = str(get_count_syllabus())
+        result_num_syllabus = executeSparql(get_numero_de_silabos_query, conn)
+        numero_total_de_silabos = int(result_num_syllabus['values'][0][0].split('"')[1])
+        conn.close()
+    
     while (limit):
     
         with ag_connect(allegroREPOSITORY, host=allegroHOST, create=False, clear=False, port=allegroPORT, user=allegroUSER, password=allegroPASSWORD) as conn:
             get_syllabus_query = str(get_title_query()).format(offset, limit)
             result = executeSparql(get_syllabus_query, conn)
-            num_silabo = 0         
+            num_silabo_por_proceso = 0         
             for silabosA in result['values']:
-    
+                print "Silabo procesado: " + str(silabos_procesados)
                 json_to_send = [] 
                 jsonsilaboA = get_content("0", silabosA, conn)
                 json_to_send.append(jsonsilaboA)  
                 
-                for silabosB in result['values'][(num_silabo+1): len(result['values'])]:
+                for silabosB in result['values'][num_silabo_por_proceso: len(result['values'])]:
                     if (silabosA[0] != silabosB[0]):#que el silabo (URI) B no sea el mismo que el silabo (URI) A
                         jsonsilaboB = get_content("1", silabosB, conn)
                         json_to_send.append(jsonsilaboB)       #Aqui ya se tiene los dos silabos en JSON
-                        print str(silabosA[1].encode('utf-8').strip() + " -- vs -- " + silabosB[1].encode('utf-8').strip())
+                        #print str(silabosA[1].encode('utf-8').strip() + " -- vs -- " + silabosB[1].encode('utf-8').strip())
                         #print json_to_send
          		try:
                             similarity = json.loads(get_similarity(json_to_send))['value']
                             save_similarity(offset, limit, silabosA[0][1: -1].encode('utf-8').strip(), silabosB[0][1: -1].encode('utf-8').strip(), similarity)  
                         except ValueError:
-                            print "Error  en consulta de similitud o construccion del JSON"
+                            save_error("Error  en consulta de similitud o construccion del JSON. Silabos que se estaban analizando:" + silabosA[0][1: -1].encode('utf-8').strip() + " vs " + silabosB[0][1: -1].encode('utf-8').strip() + " - Silabo procesado: "+ str(silabos_procesados))
+                            print "Error  en consulta de similitud o construccion del JSON. Silabos que se estaban analizando:" + silabosA[0][1: -1].encode('utf-8').strip() + " vs " + silabosB[0][1: -1].encode('utf-8').strip() + " - Silabo procesado: "+ str(silabos_procesados)
                                 #detectado error cuando un capitulo no tiene subchapters. Se debe controlar eso, detectando la similitud con los titulos de los capitulos.            
  	                json_to_send = [] 
                         json_to_send.append(jsonsilaboA)
                     
-                num_silabo = num_silabo + 1   
+                num_silabo_por_proceso = num_silabo_por_proceso + 1 
+                silabos_procesados = silabos_procesados + 1
         #print json_to_send 
         conn.close()
-        if (limit > 2):
+        if (limit > numero_total_de_silabos):
             break
-        limit = limit + 5
-
+        offset = offset + 1000
+        limit = limit + 1000
+      
 get_data()
 #consumeGETRequestSync()

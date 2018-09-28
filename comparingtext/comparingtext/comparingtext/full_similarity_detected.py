@@ -136,11 +136,12 @@ def get_similarity_from_list(listaA, listaB): #para comparar objectives, results
     for itemA in listaA:
         for itemB in listaB:
             for tag in itemA:
-                if (not tag=="id") and type(itemA[tag]).__name__ =="str" and type(itemB[tag]).__name__ =="str": #si los dos son strings
-                    comparaciones = comparaciones + 1
-                    suma_similitud = suma_similitud + text_similarity(itemA[tag], itemB[tag])
-                elif type(itemA[tag]).__name__ =="list" and type(itemB[tag]).__name__ =="list":
-                    suma_similitud = suma_similitud + get_similarity_from_list(itemA[tag], itemB[tag]) #recursivo, en caso de contenido es una lista, que contiene capitulos, capitulos contiene otra lista , subcapitulos, entonces se debe entrar a analizar subcapitulos.
+                if tag in itemB:
+                    if (not tag=="id") and type(itemA[tag]).__name__ =="str" and type(itemB[tag]).__name__ =="str": #si los dos son strings
+                        comparaciones = comparaciones + 1
+                        suma_similitud = suma_similitud + text_similarity(itemA[tag], itemB[tag])
+                    elif type(itemA[tag]).__name__ =="list" and type(itemB[tag]).__name__ =="list":
+                        suma_similitud = suma_similitud + get_similarity_from_list(itemA[tag], itemB[tag]) #recursivo, en caso de contenido es una lista, que contiene capitulos, capitulos contiene otra lista , subcapitulos, entonces se debe entrar a analizar subcapitulos.
     return (suma_similitud/comparaciones) 
     
 
