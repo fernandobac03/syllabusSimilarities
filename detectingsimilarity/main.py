@@ -15,7 +15,7 @@ allegroPORT = "10035"
 allegroREPOSITORY = "silabosUC-v2"
 
 #parametros de consulta de similitud al servicio
-url = 'http://172.17.0.4:5000/ucuenca/syllabus/similarities/service/full'
+url = 'http://172.17.0.4:5000/ucuenca/syllabus/similarity/service/fulldetected'
 
 def jsonExample():
      return jsonify([
@@ -276,10 +276,10 @@ def save_error(msg):
 def get_data():
 
 
-    offset = 0
+    offset = 1586
     limit = 1000
     numero_total_de_silabos = 0
-    silabos_procesados = 1
+    silabos_procesados = 1586
     with ag_connect(allegroREPOSITORY, host=allegroHOST, create=False, clear=False, port=allegroPORT, user=allegroUSER, password=allegroPASSWORD) as conn:
         get_numero_de_silabos_query = str(get_count_syllabus())
         result_num_syllabus = executeSparql(get_numero_de_silabos_query, conn)
@@ -318,7 +318,7 @@ def get_data():
                 silabos_procesados = silabos_procesados + 1
         #print json_to_send 
         conn.close()
-        if (limit > numero_total_de_silabos):
+        if (offset > numero_total_de_silabos ):
             break
         offset = offset + 1000
         limit = limit + 1000

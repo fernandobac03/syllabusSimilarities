@@ -22,7 +22,7 @@ def get_full_similarity(jsondata):
 
 
 def get_default_weight():
-    return {"title": "5", "description": "20", "content": "50", "objectives": "10", "results": "10", "unit": "5"}
+    return {"name": "5", "description": "20", "content": "50", "objectives": "15", "results": "10", "unit": "0"}
 
 
 #recuperando titulo del silabo

@@ -8,7 +8,7 @@ from comparingtext.comparingtext.inter import get_full_similarity, get_direct_re
 app = Flask(__name__)
 CORS(app)
 
-@app.route('/ucuenca/syllabus/similarities/service/full', methods=['POST'])
+@app.route('/ucuenca/syllabus/similarity/service/fulldetected', methods=['POST'])
 def get_similarity():
     varjson = request.get_json(force=True)
     
@@ -17,7 +17,7 @@ def get_similarity():
 
 
 
-@app.route('/ucuenca/syllabus/full_similarity_detected/direct', methods=['GET'])
+@app.route('/ucuenca/syllabus/similarity/service/test', methods=['GET'])
 def get_data():
     
     #return get_direct_results()
@@ -30,7 +30,7 @@ def get_example2():
     return jsonExample();
 
 
-@app.route('/ucuenca/syllabus/full_similarity_detected/jsonexample', methods=['GET'])
+@app.route('/ucuenca/syllabus/similarity/service/jsonexample', methods=['GET'])
 def get_example():
     
     return jsonExample();
