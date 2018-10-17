@@ -181,6 +181,11 @@ def get_global_similarity(silaboA, silaboB, pesos):
                     similarity_value = similarity_value + (similitud_de_este_tag*(int(pesos[tag])/100))
                     similarities_result_JSON[tag] = str("{0:.2f}".format(similitud_de_este_tag))
 
+    if  similarity_value == 90:
+        similarity_value = 99.9
+    if  similarity_value > 99:
+        similarity_value = 99.9
+        
     similarities_result_JSON["total"] = str("{0:.2f}".format(similarity_value))
     return similarities_result_JSON # return a JSON with similarities by tag
     #return silaboA    
